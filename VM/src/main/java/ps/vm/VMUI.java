@@ -50,7 +50,6 @@ public class VMUI extends javax.swing.JFrame {
         jLabel9 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
-        pagination = new javax.swing.JSpinner();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem3 = new javax.swing.JMenuItem();
@@ -431,6 +430,13 @@ public class VMUI extends javax.swing.JFrame {
                 default:
                     break;
             }
+            jTextArea1.setText(returnArray());
+            jTextField1.setText(AX.getRepresentacaoString());
+            jTextField2.setText(DX.getRepresentacaoString());
+            jTextField3.setText(SR.getRepresentacaoString());
+            jTextField4.setText(SP.getRepresentacaoString());
+            jTextField5.setText(IP.getRepresentacaoString());
+            jTextField6.setText(SI.getRepresentacaoString());
         }
         
         } catch(IOException e) {
@@ -777,6 +783,13 @@ public class VMUI extends javax.swing.JFrame {
     
     private static void write(int opd) {
         JOptionPane.showMessageDialog(null, "Saída: " + mem.getPalavra(opd));
+    }
+    private static String returnArray() {
+        String temp = "";
+        for(int cont = 0; cont <  200; cont++) {
+               temp += (cont + "\t" + mem.getPalavra(cont) + "\n");
+        }
+        return temp;        
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
