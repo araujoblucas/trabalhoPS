@@ -14,6 +14,9 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import static ps.vm.VM.mem;
 import static java.lang.System.exit;
+//import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class VMUI extends javax.swing.JFrame {
 
@@ -104,7 +107,11 @@ public class VMUI extends javax.swing.JFrame {
         jMenuItem3.setText("Abrir..");
         jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem3ActionPerformed(evt);
+                try {
+                    jMenuItem3ActionPerformed(evt);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(VMUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
         jMenu1.add(jMenuItem3);
@@ -232,10 +239,11 @@ public class VMUI extends javax.swing.JFrame {
     }                                          
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {                                           
-        System.exit(0);
+        hlt();
     }                                          
 
-    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {                                           
+    @SuppressWarnings("SleepWhileInLoop")
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) throws InterruptedException {                                           
         Reg2B AX, DX, SP, SI, IP, SR;
         AX = new Reg2B();
         DX = new Reg2B();
@@ -257,7 +265,7 @@ public class VMUI extends javax.swing.JFrame {
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File(""));
         chooser.setFileFilter(new FileNameExtensionFilter("object","o"));
-        int value = chooser.showOpenDialog(null);
+        chooser.showOpenDialog(null);
         File f = chooser.getSelectedFile();
         String filename = f.getAbsolutePath();
         
@@ -272,16 +280,22 @@ public class VMUI extends javax.swing.JFrame {
         rBuffer.close();
         rArquivo.close();
         
-                int cont;
+        int cont;
         for(;;) {
             cont = IP.getRepresentacaoInt();
-            if(mem.getPalavra(cont).contentEquals("EF") || mem.getPalavra(cont).contentEquals("EE") || 
-                    mem.getPalavra(cont).contentEquals("9D") || mem.getPalavra(cont).contentEquals("9C")) {
-                IP.setRegistrador(cont + 1);
-            } else if(mem.getPalavra(cont).contentEquals("07")) {
-                IP.setRegistrador(cont + 3);
-            } else {
-                IP.setRegistrador(cont + 2);
+            switch (mem.getPalavra(cont)) {
+                case "EF":
+                case "EE":
+                case "9D":
+                case "9C":
+                    IP.setRegistrador(cont + 1);
+                    break;
+                case "07":
+                    IP.setRegistrador(cont + 3);
+                    break;
+                default:
+                    IP.setRegistrador(cont + 2);
+                    break;
             }
             switch(mem.getPalavra(cont++)) {
                 case "03":
@@ -376,8 +390,8 @@ public class VMUI extends javax.swing.JFrame {
                     ret(SP, IP, pilha);
                     break;
                 case "EE":
-                    //hlt();
-                    returnArray();
+                    atualizaUI(AX, DX, SR, SP, IP, SI);
+                    wait();
                     break;
                 case "58":
                     if(mem.getPalavra(cont).equals("C0")) {
@@ -425,19 +439,14 @@ public class VMUI extends javax.swing.JFrame {
                 default:
                     break;
             }
-            jTextField1.setText(AX.getRepresentacaoString());
-            jTextField2.setText(DX.getRepresentacaoString());
-            jTextField3.setText(SR.getRepresentacaoString());
-            jTextField4.setText(SP.getRepresentacaoString());
-            jTextField5.setText(IP.getRepresentacaoString());
-            jTextField6.setText(SI.getRepresentacaoString());
+            atualizaUI(AX, DX, SR, SP, IP, SI);
         }
         
         } catch(IOException e) {
             JOptionPane.showMessageDialog(null,e);
         }
-    }                                          
-
+    }
+    
     private void jTextField4ActionPerformed(java.awt.event.ActionEvent evt) {                                            
         // TODO add your handling code here:
     }                                           
@@ -466,15 +475,11 @@ public class VMUI extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(VMUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(VMUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(VMUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(VMUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        
         //</editor-fold>
 
         /* Create and display the form */
@@ -485,7 +490,7 @@ public class VMUI extends javax.swing.JFrame {
         });
     }
     
-        private static int getOperando(int index) {
+    private static int getOperando(int index) {
         return Integer.parseInt(mem.getPalavra(Integer.parseInt(mem.getPalavra(index)) + 13));
     }
     
@@ -771,20 +776,31 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void read(int opd) {
-        String entrada = JOptionPane.showInputDialog("Digite o valor da entrada: ");
-        mem.setPalavra(entrada, opd+13);
+        String entrada = JOptionPane.showInputDialog("Digite o valor de entrada: ");
+        mem.setPalavra(entrada, (opd + 13));
     }
     
     private static void write(int opd) {
         JOptionPane.showMessageDialog(null, "Saída: " + mem.getPalavra(opd));
     }
-    private String returnArray() {
+    private static String setMemoriaUI() {
         String temp = "";
         for(int cont = 0; cont <  32768; cont++) {
                temp += (cont + "\t" + mem.getPalavra(cont) + "\n");
         }
-        jTextArea1.setText(temp);
-        return null;
+        return temp;
+    }
+    
+    private void atualizaUI(Reg2B reg1, Reg2B reg2, Reg2B reg3, Reg2B reg4, Reg2B reg5, Reg2B reg6) throws InterruptedException {
+        jTextArea1.setText(setMemoriaUI());
+        jTextField1.setText(reg1.getRepresentacaoString());
+        jTextField2.setText(reg2.getRepresentacaoString());
+        jTextField3.setText(reg3.getRepresentacaoString());
+        jTextField4.setText(reg4.getRepresentacaoString());
+        jTextField5.setText(reg5.getRepresentacaoString());
+        jTextField6.setText(reg6.getRepresentacaoString());
+        update(getGraphics());
+        //TimeUnit.SECONDS.sleep(1);
     }
 
     // Variables declaration - do not modify                     
