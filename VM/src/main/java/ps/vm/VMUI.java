@@ -528,18 +528,18 @@ public class VMUI extends javax.swing.JFrame {
     
     private static boolean verificaEAtualizaOverflow(int valor, Reg2B flags) {
         if(valor > 65535) {
-            flags.atualiza1Bit(12, true);
+            flags.atualiza1Bit(3, true);
             return true;
         }
-        flags.atualiza1Bit(12, false);
+        flags.atualiza1Bit(3, false);
         return false;
     }
     
     private static void atualizaFlagsCPZS(Reg2B reg, Reg2B flags) {
-        flags.atualiza1Bit(0, verificaCarry(reg.getRepresentacaoString()));
-        flags.atualiza1Bit(6, verificaParidade(reg.getRepresentacaoString()));
-        flags.atualiza1Bit(8, verificaZero(reg.getRepresentacaoInt()));
-        flags.atualiza1Bit(9, verificaSinal(reg.getRepresentacaoInt()));
+        flags.atualiza1Bit(15, verificaCarry(reg.getRepresentacaoString()));
+        flags.atualiza1Bit(9, verificaParidade(reg.getRepresentacaoString()));
+        flags.atualiza1Bit(7, verificaZero(reg.getRepresentacaoInt()));
+        flags.atualiza1Bit(6, verificaSinal(reg.getRepresentacaoInt()));
     }
     
     private static void addReg(Reg2B reg1, Reg2B reg2, Reg2B flags) {
@@ -607,11 +607,11 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void cmpOpd(Reg2B reg, int opd, Reg2B flags) {
-        flags.atualiza1Bit(8, (reg.getRepresentacaoInt() == opd));
+        flags.atualiza1Bit(7, (reg.getRepresentacaoInt() == opd));
     }
     
     private static void cmpReg(Reg2B reg1, Reg2B reg2, Reg2B flags) {
-        flags.atualiza1Bit(8, (reg1.getRepresentacaoInt() == reg2.getRepresentacaoInt().intValue()));
+        flags.atualiza1Bit(7, (reg1.getRepresentacaoInt() == reg2.getRepresentacaoInt().intValue()));
     }
     
     private static void andReg(Reg2B reg1, Reg2B reg2, Reg2B flags) {
@@ -714,19 +714,19 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void jz(Reg2B reg, int opd, Reg2B flags) {
-        if(flags.get1Bit(8)) {
+        if(flags.get1Bit(7)) {
             reg.setRegistrador(opd);
         }
     }
     
     private static void jnz(Reg2B reg, int opd, Reg2B flags) {
-        if(!flags.get1Bit(8)) {
+        if(!flags.get1Bit(7)) {
             reg.setRegistrador(opd);
         }
     }
     
     private static void jp(Reg2B reg, int opd, Reg2B flags) {
-        if(!flags.get1Bit(9)) {
+        if(!flags.get1Bit(6)) {
             reg.setRegistrador(opd);
         }
     }
@@ -776,13 +776,13 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void read(int opd) {
-        String entrada = JOptionPane.showInputDialog("Digite o valor de entrada: ");
-        mem.setPalavra(entrada, (opd + 13));
+        mem.setPalavra(JOptionPane.showInputDialog("Digite o valor da entrada: "), (opd + 13));
     }
     
     private static void write(int opd) {
         JOptionPane.showMessageDialog(null, "Saída: " + mem.getPalavra(opd));
     }
+
     private static String setMemoriaUI() {
         String temp = "";
         for(int cont = 0; cont <  32768; cont++) {
