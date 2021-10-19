@@ -255,7 +255,7 @@ public class VMUI extends javax.swing.JFrame {
             //7 -> IF (Interrupção) -> Desconsiderada por não utilização
             //Testados após a realização de algumas operações; Os conteúdos podem ser usados para desvios condicionais
         Pilha pilha = new Pilha();
-        IP.setRegistrador(13);
+        IP.setRegistrador(mem.getEndMaxPilha());
         
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File(""));
@@ -492,7 +492,7 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static int getOperando(int index) {
-        return Integer.parseInt(mem.getPalavra(Integer.parseInt(mem.getPalavra(index)) + 13));
+        return Integer.parseInt(mem.getPalavra(Integer.parseInt(mem.getPalavra(index)) + mem.getEndMaxPilha()));
     }
     
     private static boolean verificaCarry(String conteudo) {                     ///////
@@ -734,7 +734,7 @@ public class VMUI extends javax.swing.JFrame {
     
     private static void call(Reg2B regPilha, Reg2B IP, int index, Pilha pilha) {
         pilha.push(IP.getRepresentacaoString());
-        IP.setRegistrador(Integer.parseInt(mem.getPalavra(index)) + 12);
+        IP.setRegistrador(Integer.parseInt(mem.getPalavra(index)) + mem.getEndMaxPilha() - 1);
         regPilha.setRegistrador(pilha.getEndTopoPilha());
     }
     
@@ -777,7 +777,7 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void read(int opd) {
-        mem.setPalavra(JOptionPane.showInputDialog("Digite o valor da entrada: "), (opd + 13));
+        mem.setPalavra(JOptionPane.showInputDialog("Digite o valor da entrada: "), (opd + mem.getEndMaxPilha()));
     }
     
     private static void write(int opd) {
