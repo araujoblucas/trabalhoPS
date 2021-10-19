@@ -14,9 +14,9 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import static ps.vm.VM.mem;
 import static java.lang.System.exit;
-//import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.concurrent.TimeUnit;
 
 public class VMUI extends javax.swing.JFrame {
 
@@ -107,11 +107,7 @@ public class VMUI extends javax.swing.JFrame {
         jMenuItem3.setText("Abrir..");
         jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                try {
-                    jMenuItem3ActionPerformed(evt);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(VMUI.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                jMenuItem3ActionPerformed(evt);
             }
         });
         jMenu1.add(jMenuItem3);
@@ -221,7 +217,7 @@ public class VMUI extends javax.swing.JFrame {
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextField6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(0, 253, Short.MAX_VALUE))
                     .addComponent(jScrollPane2))
                 .addGap(38, 38, 38))
         );
@@ -239,11 +235,10 @@ public class VMUI extends javax.swing.JFrame {
     }                                          
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {                                           
-        hlt();
+        System.exit(0);
     }                                          
 
-    @SuppressWarnings("SleepWhileInLoop")
-    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) throws InterruptedException {                                           
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {                                           
         Reg2B AX, DX, SP, SI, IP, SR;
         AX = new Reg2B();
         DX = new Reg2B();
@@ -444,9 +439,11 @@ public class VMUI extends javax.swing.JFrame {
         
         } catch(IOException e) {
             JOptionPane.showMessageDialog(null,e);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(VMUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-    
+    }                                          
+
     private void jTextField4ActionPerformed(java.awt.event.ActionEvent evt) {                                            
         // TODO add your handling code here:
     }                                           
@@ -475,11 +472,15 @@ public class VMUI extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(VMUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(VMUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(VMUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(VMUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-        
         //</editor-fold>
 
         /* Create and display the form */
@@ -733,7 +734,7 @@ public class VMUI extends javax.swing.JFrame {
     
     private static void call(Reg2B regPilha, Reg2B IP, int index, Pilha pilha) {
         pilha.push(IP.getRepresentacaoString());
-        IP.setRegistrador(Integer.parseInt(mem.getPalavra(index)) + 13);
+        IP.setRegistrador(Integer.parseInt(mem.getPalavra(index)) + 12);
         regPilha.setRegistrador(pilha.getEndTopoPilha());
     }
     
@@ -800,7 +801,7 @@ public class VMUI extends javax.swing.JFrame {
         jTextField5.setText(reg5.getRepresentacaoString());
         jTextField6.setText(reg6.getRepresentacaoString());
         update(getGraphics());
-        //TimeUnit.SECONDS.sleep(1);
+        TimeUnit.SECONDS.sleep(2);
     }
 
     // Variables declaration - do not modify                     
