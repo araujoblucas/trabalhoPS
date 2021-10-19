@@ -9,14 +9,14 @@ public class Memoria {
     public Memoria() {
         this.palavras = new String[32768];
         Arrays.fill(palavras, "");
-        setPalavra("0000000000001010", 2);
-        for(int cont = 3; cont < 13; cont++) {
+        palavras[2] = "10";
+        for(int cont = 3; cont < (3 + Integer.parseInt(palavras[2])); cont++) {
             palavras[cont] = "**pilha**";
         }
     }
     
     protected void setPalavra(String palavra) {
-        for(int cont = 13; cont < 32768; cont++) {
+        for(int cont = (3 + Integer.parseInt(palavras[2])); cont < 32768; cont++) {
             if(palavras[cont].equalsIgnoreCase("")) {
                 palavras[cont] = palavra;
             }
@@ -24,7 +24,7 @@ public class Memoria {
     }
     
     protected void setPalavra(String palavra, int index) {
-        if(index > 13) {
+        if(index > (3 + Integer.parseInt(palavras[2]))) {
             palavras[index] = palavra;
         }
     }
@@ -35,7 +35,7 @@ public class Memoria {
     
     protected void setLinha(String[] linha) {
         boolean flag;
-        for(int cont = 13; cont < 32768; cont++) {
+        for(int cont = (3 + Integer.parseInt(palavras[2])); cont < 32768; cont++) {
             if(palavras[cont].equalsIgnoreCase("")) {
                 flag = true;
                 for(int aux = 0; aux < linha.length; aux++) {
@@ -60,11 +60,19 @@ public class Memoria {
     }
     
     protected int getEndTopoPilha() {
-        for(int cont = 0; cont < 13; cont++) {
+        for(int cont = 0; cont < (3 + Integer.parseInt(palavras[2])); cont++) {
             if(palavras[cont].equalsIgnoreCase("**pilha**")) {
                 return (cont - 1);
             }
         }
         return 0;                                                               //pilha cheia
+    }
+    
+    protected int getMaxPilha() {
+        return Integer.parseInt(palavras[2]);
+    }
+    
+    protected int getEndMaxPilha() {
+        return (3 + Integer.parseInt(palavras[2]));
     }
 }
