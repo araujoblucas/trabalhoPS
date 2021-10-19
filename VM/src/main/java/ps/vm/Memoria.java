@@ -5,7 +5,6 @@ import java.util.Arrays;
 public class Memoria {
     private String[] palavras;
    
-    @SuppressWarnings("OverridableMethodCallInConstructor")
     public Memoria() {
         this.palavras = new String[32768];
         Arrays.fill(palavras, "");
