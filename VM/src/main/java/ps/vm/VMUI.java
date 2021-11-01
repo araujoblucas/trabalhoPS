@@ -61,7 +61,7 @@ public class VMUI extends javax.swing.JFrame {
         jMenuItem2 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Grupo 100 - Máquina Virtual Z808");
+        setTitle("Máquina Virtual Z808 - Grupo 100");
 
         jLabel1.setText("AX");
 
@@ -235,7 +235,7 @@ public class VMUI extends javax.swing.JFrame {
     }                                          
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {                                           
-        System.exit(0);
+        exit(0);
     }                                          
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {                                           
@@ -367,16 +367,16 @@ public class VMUI extends javax.swing.JFrame {
                     xorOpd(AX, getOperando(cont), SR);
                     break;
                 case "EB":
-                    jmp(IP, getOperando(cont));
+                    jmp(IP, Integer.parseInt(mem.getPalavra(cont)));
                     break;
                 case "74":
-                    jz(IP, getOperando(cont), SR);
+                    jz(IP, Integer.parseInt(mem.getPalavra(cont)), SR);
                     break;
                 case "75":
-                    jnz(IP, getOperando(cont), SR);
+                    jnz(IP, Integer.parseInt(mem.getPalavra(cont)), SR);
                     break;
                 case "7A":
-                    jp(IP, getOperando(cont), SR);
+                    jp(IP, Integer.parseInt(mem.getPalavra(cont)), SR);
                     break;
                 case "E8":
                     call(SP, IP, cont, pilha);
@@ -386,7 +386,7 @@ public class VMUI extends javax.swing.JFrame {
                     break;
                 case "EE":
                     atualizaUI(AX, DX, SR, SP, IP, SI);
-                    wait();
+                    hlt();
                     break;
                 case "58":
                     if(mem.getPalavra(cont).equals("C0")) {
@@ -400,7 +400,7 @@ public class VMUI extends javax.swing.JFrame {
                     //pega valor do topo da pilha e armazena no endereço dado por opd
                     //falta opd no opcode
                     //instrução possui tamanho 2 -> opcode corrigido: 59 opd
-                    popOpd(SP, Integer.parseInt(mem.getPalavra(cont)), pilha);
+                    popOpd(SP, getOperando(cont), pilha);
                     break;
                 case "9D":
                     popF(SP, SR, pilha);
@@ -420,9 +420,9 @@ public class VMUI extends javax.swing.JFrame {
                     //falta opd no opcode
                     //instrução possui tamanho 3 -> opcode corrigido: 07 C0/C2 opd
                     if(mem.getPalavra(cont).equals("C0")) {
-                        store(AX, Integer.parseInt(mem.getPalavra(cont)));
+                        store(AX, Integer.parseInt(mem.getPalavra(cont + 1)));
                     } else if(mem.getPalavra(cont).equals("C2")) {
-                        store(DX, Integer.parseInt(mem.getPalavra(cont)));
+                        store(DX, Integer.parseInt(mem.getPalavra(cont + 1)));
                     }
                     break;
                 case "12":
@@ -563,7 +563,7 @@ public class VMUI extends javax.swing.JFrame {
         atualizaFlagsCPZS(reg, flags);
     }
     
-    private static void div(Reg2B reg1, Reg2B reg2, Reg2B reg3, Reg2B flags) {
+    private static void div(Reg2B reg1, Reg2B reg2, Reg2B reg3, Reg2B flags) {  //divisão por 0!
         int div = reg1.getRepresentacaoInt() / reg2.getRepresentacaoInt();
         int mod = reg1.getRepresentacaoInt() % reg2.getRepresentacaoInt();
         if(verificaEAtualizaOverflow(div, flags)) {
@@ -627,12 +627,12 @@ public class VMUI extends javax.swing.JFrame {
     private static void andOpd(Reg2B reg, int opd, Reg2B flags) {
         int cont, aux = 0;
         Boolean[] opdBin = new Boolean[16];
-        for(cont = 32768; aux++ < 16; cont /= 2) {
+        for(cont = 32768; aux < 16; cont /= 2) {
             if(opd < cont*2 && opd >= cont) {
-                opdBin[opdBin.length] = true;
+                opdBin[aux++] = true;
                 opd -= cont;
             } else{
-                opdBin[opdBin.length] = false;
+                opdBin[aux++] = false;
             }
         }
         for(cont = 0; cont < 16; cont++) {
@@ -662,12 +662,12 @@ public class VMUI extends javax.swing.JFrame {
     private static void orOpd(Reg2B reg, int opd, Reg2B flags) {
         int cont, aux = 0;
         Boolean[] opdBin = new Boolean[16];
-        for(cont = 32768; aux++ < 16; cont /= 2) {
+        for(cont = 32768; aux < 16; cont /= 2) {
             if(opd < cont*2 && opd >= cont) {
-                opdBin[opdBin.length] = true;
+                opdBin[aux++] = true;
                 opd -= cont;
             } else{
-                opdBin[opdBin.length] = false;
+                opdBin[aux++] = false;
             }
         }
         for(cont = 0; cont < 16; cont++) {
@@ -692,12 +692,12 @@ public class VMUI extends javax.swing.JFrame {
     private static void xorOpd(Reg2B reg, int opd, Reg2B flags) {
         int cont, aux = 0;
         Boolean[] opdBin = new Boolean[16];
-        for(cont = 32768; aux++ < 16; cont /= 2) {
+        for(cont = 32768; aux < 16; cont /= 2) {
             if(opd < cont*2 && opd >= cont) {
-                opdBin[opdBin.length] = true;
+                opdBin[aux++] = true;
                 opd -= cont;
             } else{
-                opdBin[opdBin.length] = false;
+                opdBin[aux++] = false;
             }
         }
         for(cont = 0; cont < 16; cont++) {
@@ -711,24 +711,24 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void jmp(Reg2B reg, int opd) {
-        reg.setRegistrador(opd);
+        reg.setRegistrador(opd + mem.getEndMaxPilha());
     }
     
     private static void jz(Reg2B reg, int opd, Reg2B flags) {
         if(flags.get1Bit(7)) {
-            reg.setRegistrador(opd);
+            reg.setRegistrador(opd + mem.getEndMaxPilha());
         }
     }
     
     private static void jnz(Reg2B reg, int opd, Reg2B flags) {
         if(!flags.get1Bit(7)) {
-            reg.setRegistrador(opd);
+            reg.setRegistrador(opd + mem.getEndMaxPilha());
         }
     }
     
     private static void jp(Reg2B reg, int opd, Reg2B flags) {
         if(!flags.get1Bit(6)) {
-            reg.setRegistrador(opd);
+            reg.setRegistrador(opd + mem.getEndMaxPilha());
         }
     }
     
@@ -743,8 +743,10 @@ public class VMUI extends javax.swing.JFrame {
         regPilha.setRegistrador(pilha.getEndTopoPilha());
     }
     
-    private static void hlt() {
-        exit(0);
+    @SuppressWarnings("WaitWhileNotSynced")
+    private void hlt() throws InterruptedException {
+        JOptionPane.showMessageDialog(null, "Execução finalizada!\nPara sair, pressione Arquivo -> Sair.", "Instrução Hlt", WIDTH);
+        wait();
     }
     
     private static void popReg(Reg2B regPilha, Reg2B reg, Pilha pilha) {
@@ -753,7 +755,7 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void popOpd(Reg2B regPilha, int opd, Pilha pilha) {
-        mem.setPalavra(pilha.pop(), Integer.parseInt(mem.getPalavra(opd)));
+        mem.setPalavra(pilha.pop(), Integer.parseInt(mem.getPalavra(opd)) + mem.getEndMaxPilha());
         regPilha.setRegistrador(pilha.getEndTopoPilha());
     }
     
@@ -773,21 +775,21 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void store(Reg2B reg, int opd) {
-        mem.setPalavra(reg.getRepresentacaoString(), opd);
+        mem.setPalavra(reg.getRepresentacaoInt().toString(), opd + mem.getEndMaxPilha());
     }
     
     private static void read(int opd) {
-        mem.setPalavra(JOptionPane.showInputDialog("Digite o valor da entrada: "), (opd + mem.getEndMaxPilha()));
+        mem.setPalavra(JOptionPane.showInputDialog(null, "Digite o valor da entrada:", "Instrução Read", WIDTH), (opd + mem.getEndMaxPilha()));
     }
     
     private static void write(int opd) {
-        JOptionPane.showMessageDialog(null, "Saída: " + mem.getPalavra(opd));
+        JOptionPane.showMessageDialog(null, "Saída: " + mem.getPalavra(opd + mem.getEndMaxPilha()), "Instrução Write", WIDTH);
     }
 
     private static String setMemoriaUI() {
         String temp = "";
         for(int cont = 0; cont <  32768; cont++) {
-               temp += (cont + "\t" + mem.getPalavra(cont) + "\n");
+            temp += (cont + "\t" + mem.getPalavra(cont) + "\n");
         }
         return temp;
     }
