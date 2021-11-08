@@ -1,0 +1,373 @@
+package ps.z808.pm;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+public class PMUI extends javax.swing.JFrame {
+    static ArrayList<String> linhas = new ArrayList<>();
+    static TDM tabela = new TDM();
+    static public volatile boolean fPM = false;
+    
+    public PMUI() {
+        initComponents();
+    }
+
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jButton1 = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
+        jTextField1 = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        jTextField2 = new javax.swing.JTextField();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        jMenuItem3 = new javax.swing.JMenuItem();
+        jMenu2 = new javax.swing.JMenu();
+        jMenuItem4 = new javax.swing.JMenuItem();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Processador de Macro - Grupo 100");
+
+        jButton1.setText("Abrir");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setText("Arquivo de saída:");
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane1.setViewportView(jTextArea1);
+
+        jTextField1.setText("Local do Arquivo");
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField1ActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setText("Salvo no arquivo:");
+
+        jTextField2.setText("Local do Arquivo de Saída");
+        jTextField2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField2ActionPerformed(evt);
+            }
+        });
+
+        jMenu1.setText("Arquivo");
+
+        jMenuItem3.setText("Sair");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem3);
+
+        jMenuBar1.add(jMenu1);
+
+        jMenu2.setText("Sobre");
+        jMenu2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenu2ActionPerformed(evt);
+            }
+        });
+
+        jMenuItem4.setText("Informações");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem4);
+
+        jMenuBar1.add(jMenu2);
+
+        setJMenuBar(jMenuBar1);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 114, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 327, Short.MAX_VALUE))
+                    .addComponent(jTextField1))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton1)
+                .addGap(1, 1, 1)
+                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 413, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(13, Short.MAX_VALUE))
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    @SuppressWarnings("WaitWhileNotSynced")
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+            JFileChooser chooser = new JFileChooser();
+            chooser.setCurrentDirectory(new File(""));
+            chooser.setFileFilter(new FileNameExtensionFilter("asm","ASM"));
+            chooser.showOpenDialog(null);
+            File f = chooser.getSelectedFile();
+            String filename = f.getAbsolutePath();
+            
+            try{
+                FileReader rArquivo = new FileReader(filename);
+                BufferedReader rBuffer = new BufferedReader(rArquivo);
+                FileWriter wArquivo = new FileWriter("saida.asm");
+                BufferedWriter wBuffer = new BufferedWriter(wArquivo);
+                jTextField1.setText(filename);
+                jTextField2.setText("saida.asm");
+                
+                int cont, auxChamada;
+                for(cont = 0; rBuffer.ready(); cont++){
+                    linhas.add(rBuffer.readLine());
+                    linhas.set(cont, linhas.get(cont).replace("\t", " "));
+                    if(verificacaoDefinicao(cont)) {
+                        cont = modoDefinicao(rBuffer, cont);
+                    } else if((auxChamada = verificacaoChamada(cont)) >= 0) {
+                        //se houver chamada de macro na linha, verificacaoChamada retorna index do protótipo da macro chamada
+                        //se não, verificacaoChamada retorna -1
+                        modoExpansao(wBuffer, auxChamada, cont);
+                    } else {
+                        modoCopia(wBuffer, cont);
+                    }
+                }
+                
+                rBuffer.close();
+                rArquivo.close();
+                wBuffer.close();
+                wArquivo.close();
+                FileReader saida = new FileReader("saida.asm");
+                BufferedReader saidaBuffer = new BufferedReader(saida);
+                jTextArea1.read(saidaBuffer,null);
+                saidaBuffer.close();
+                jTextArea1.requestFocus();
+            }catch(IOException e){
+                JOptionPane.showMessageDialog(null,e);
+            }
+            this.remove(jButton1);
+            this.repaint();
+            fPM = true;
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        this.setVisible(false);
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
+
+    private void jMenu2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenu2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenu2ActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        JOptionPane.showMessageDialog(null, "Universidade Federal de Pelotas - 2021/1 \n" + "Trabalho de Programação de Sistemas - Grupo 100 \n" + "\n" + "18200581 THALIA DJUNE COSTA LONGARAY\n" +
+            "14101919 LUCAS BRAATZ ARAUJO\n" +
+            "19100900 ALEJANDRO TOMAS REYES ALBERONI\n" +
+            "17200154 JOAZ FERNANDO BASTOS DA SILVA FILHO\n" +
+            "11108244 MATEUS AL ALAM DE ALMEIDA\n" +
+            "18101409 CLEBER FARIAS BERNDSEN JUNIOR");
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField2ActionPerformed
+
+    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField1ActionPerformed
+
+    public static void main(String args[]) {
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new PMUI().setVisible(true);
+            }
+        });
+    }
+    
+    private static boolean verificacaoDefinicao(int indexLinha) {
+        return linhas.get(indexLinha).contains("MACRO");
+    }
+    
+    private static int verificacaoChamada(int indexLinha) {
+        String temp[] = linhas.get(indexLinha).split(" ");
+        int cont, contMacro, numeroMacrosDefinidas = tabela.getNumeroMacrosDefinidas();
+        
+        for(contMacro = numeroMacrosDefinidas - 1; contMacro >= 0; contMacro--) {
+        //(suporte a redefinição) contagem inicia pelo final do array para identificar sempre a definição mais recente
+            for(cont = 0; (cont < 2) && (cont < temp.length); cont++) {
+            //caso contenha label na linha de chamada
+                if(temp[cont].contentEquals(tabela.getNomeMacro(contMacro))){
+                    return contMacro;
+                    //retorna index da macro chamada
+                }
+            }
+        }
+        return -1;
+    }
+    
+    private static int modoDefinicao(BufferedReader rBuffer, int indexLinha) throws IOException {
+        String temp = linhas.get(indexLinha);
+        int contAninhamento = 0;
+        //contador de definições aninhadas para identificação correta do delimitador final ("ENDM") da macro mais externa
+        boolean macroInterna = false;
+        tabela.setPrototipoMacro(temp);
+        //adiciona o protótipo da macro no array de prototipos
+        //adiciona no contador o index da linha na qual começa a definição da macro
+        //adiciona temporariamente todos os parametros formais da macro no array parametros
+            //para substituição por #0, #1,...
+        
+        do {
+            if(linhas.get(indexLinha).contains("ENDM") && macroInterna) {
+            //se houver delimitador final na linha e for de uma definição aninhada
+                contAninhamento--;
+                if(contAninhamento == 0) {
+                //se, no momento, não se encontra em definição aninhada, significa que retornou à definição mais externa
+                    macroInterna = false;
+                }
+            }
+            linhas.add(rBuffer.readLine());
+            indexLinha++;
+            linhas.set(indexLinha, linhas.get(indexLinha).replace("\t", " "));
+            if(linhas.get(indexLinha).contains("MACRO")) {
+            //se houver delimitador inicial na linha, significa que há definição aninhada
+                contAninhamento++;
+                macroInterna = true;
+            }
+            tabela.setDefinicaoMacro(linhas.get(indexLinha), macroInterna);
+            //insere a linha no array de definições de macro
+                //considera o caso de definição aninhada, mantendo os parâmetros formais da macro interna
+        } while(!linhas.get(indexLinha).contains("ENDM") || contAninhamento != 0);
+        //enquanto a linha não contiver delimitador final da definição mais externa
+        
+        tabela.limpaParametros();
+        
+        return indexLinha;
+        //retorna index atualizado para o contador das linhas de entrada
+    }
+    
+    private static void modoExpansao(BufferedWriter wBuffer, int indexPrototipo, int indexLinha) throws IOException {
+        ArrayList<String> parametrosReais = new ArrayList<>();
+        parametrosReais.addAll(tabela.getParametrosChamada(indexPrototipo, indexLinha));
+        tabela.limpaParametros();
+        String temp;
+        int contLinhas, contParametrosReais, contAninhamento = 0;
+        //contLinhas -> contador das linhas da definição
+        //contParametrosReais -> contador para auxiliar na substituição dos parâmetros das linhas da definição pelos parâmetros reais
+        //contAninhamento -> contador de definições aninhadas
+            //define as macros internas encontradas no momento da expansão da macro mais externa
+        boolean macroInterna = false;
+        tabela.setNumeroExpansoes(indexPrototipo, tabela.getNumeroExpansoes(indexPrototipo) + 1);
+        //(suporte a .SER) incrementa número de expansões que a macro já teve
+        
+        for(contLinhas = tabela.getContador(indexPrototipo); !tabela.getLinhaDefinicao(contLinhas).contains("ENDM") || macroInterna; contLinhas++) {
+        //enquanto a linha não contiver delimitador final da definição mais externa
+            temp = tabela.getLinhaDefinicao(contLinhas);
+            
+            if(temp.contains("MACRO")) {
+            //se houver delimitador inicial na linha, significa que há definição aninhada
+                contAninhamento++;
+                macroInterna = true;
+                tabela.setPrototipoMacro(temp);
+                //adiciona o protótipo da macro interna no array de prototipos
+                //adiciona no contador o index da linha na qual começa a definição da macro interna
+                //adiciona temporariamente todos os parametros formais da macro interna no array parametros
+                    //para substituição por #0, #1,...
+            } else if(temp.contains("ENDM") && contAninhamento != 0) {
+            //se houver delimitador final de macro interna
+                contAninhamento--;
+                if(contAninhamento == 0) {
+                //se, no momento, não se encontra em definição aninhada, significa que retornou à definição mais externa
+                    macroInterna = false;
+                    tabela.limpaParametros();
+                }
+                tabela.setDefinicaoMacro(temp, macroInterna);
+                //insere a linha da macro interna no array de definições de macro
+            } else {
+            //a linha pode ser de definição da macro mais externa ou de uma definição aninhada
+                for(contParametrosReais = 0; contParametrosReais < parametrosReais.size(); contParametrosReais++) {
+                    if(temp.contains("#" + contParametrosReais)) {
+                        temp = temp.substring(0, temp.indexOf("#" + contParametrosReais)).concat(parametrosReais.get(contParametrosReais) + temp.substring(temp.indexOf("#" + contParametrosReais) + 2));
+                        contParametrosReais--;
+                    }
+                }
+                //laço que realiza a substituição dos parâmetros da linha pelos parâmetros reais (da chamada)
+                if(macroInterna) {
+                //se for definição aninhada
+                    tabela.setDefinicaoMacro(temp, macroInterna);
+                    //só insere a linha no array de definições de macro
+                } else {
+                    if(contLinhas == tabela.getContador(indexPrototipo) && linhas.get(indexLinha).trim().indexOf(tabela.getNomeMacro(indexPrototipo)) > 0) {
+                        temp = linhas.get(indexLinha).substring(0, linhas.get(indexLinha).indexOf(tabela.getNomeMacro(indexPrototipo))).concat(temp);
+                    }
+                    //verifica se é a linha de chamada e se há label, para não descartar
+                    else if(temp.contains(".SER")) {
+                       temp = temp.substring(0, temp.indexOf(".SER")).concat("00" + tabela.getNumeroExpansoes(indexPrototipo) + temp.substring(temp.indexOf(".SER") + 4));
+                    }
+                    //verifica se há .SER e, caso haja, substitui pelo número correspondente ao número da expansão da macro 
+                    wBuffer.write(temp, 0, temp.length());
+                    wBuffer.newLine();
+                }
+            }
+        }
+        
+        tabela.limpaParametros();
+    }
+    
+    private static void modoCopia(BufferedWriter wBuffer, int cont) throws IOException {
+        wBuffer.write(linhas.get(cont), 0, linhas.get(cont).length());
+        wBuffer.newLine();
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextField jTextField2;
+    // End of variables declaration//GEN-END:variables
+}
