@@ -1,6 +1,6 @@
 package ps.z808.vm;
 import java.util.ArrayList;
-import static ps.z808.vm.VMUI.mem;
+import static ps.z808.vm.Carregador.mem;
 
 public class Pilha {
     private ArrayList<String> linhas;
