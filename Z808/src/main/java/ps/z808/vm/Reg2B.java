@@ -10,7 +10,7 @@ public class Reg2B {
     protected Reg2B() {
         this.registrador = new Boolean[16];
         this.representacaoString = new String();
-        setRegistrador("");
+        setRegistrador("", false);
     }
     
     protected String getRepresentacaoString() {                                 //binario
@@ -25,7 +25,8 @@ public class Reg2B {
         return registrador[index];
     }
     
-    protected void setRegistrador(String conteudo) {                            //binario
+    protected void setRegistrador(String conteudo, boolean sinal) {             //binario
+        this.sinal = sinal;
         setRepresentacaoString(conteudo);
         setRepresentacaoInt(representacaoString);
         char[] temp = representacaoString.toCharArray();
@@ -46,6 +47,12 @@ public class Reg2B {
     }
     
     protected void setRegistrador(Integer conteudo) {                           //decimal
+        if(conteudo < 0) {
+            sinal = true;
+            conteudo *= (-1);
+        } else {
+            sinal = false;
+        }
         representacaoInt = 0;
         representacaoString = "";
         int cont, aux = 0;
@@ -57,7 +64,7 @@ public class Reg2B {
                 representacaoString += "0";
             }
         }
-        setRegistrador(representacaoString);
+        setRegistrador(representacaoString, sinal);
     }
     
     private void setRepresentacaoString(String conteudo) {
@@ -77,6 +84,9 @@ public class Reg2B {
             if(temp[aux--] == '1') {
                 representacaoInt += cont;
             }
+        }
+        if(sinal) {
+            representacaoInt *= (-1);
         }
     }
     
