@@ -3,24 +3,20 @@ Flag 0 e método verificaCarry -> CF (Carry/Borrow): Recebe 1 se uma operação 
 Endereçamentos e SI
 */
 package ps.z808.vm;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import static java.lang.System.exit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.concurrent.TimeUnit;
+import static ps.z808.vm.Carregador.mem;
 /*
 Tamanho da memória: 64 KB (65536 bytes -> 32768 palavras)
 Palavra de memória: 16 bits (2 bytes)
 Unidade de endereçamento: palavra
 */
 public class VMUI extends javax.swing.JFrame {
-    static Memoria mem = new Memoria();
     
     public VMUI() {
         initComponents();
@@ -98,10 +94,16 @@ public class VMUI extends javax.swing.JFrame {
             }
         });
 
-        jMenuItem3.setText("Abrir..");
+        jMenuItem3.setText("Executar");
         jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem3ActionPerformed(evt);
+                try {
+                    jMenuItem3ActionPerformed(evt);
+                } catch (IOException ex) {
+                    Logger.getLogger(VMUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(VMUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
         jMenu1.add(jMenuItem3);
@@ -221,18 +223,15 @@ public class VMUI extends javax.swing.JFrame {
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {                                           
         JOptionPane.showMessageDialog(null, "Universidade Federal de Pelotas - 2021/1 \n" + "Trabalho de Programação de Sistemas - Grupo 100 \n" + "\n" + "18200581 THALIA DJUNE COSTA LONGARAY\n" +
-            "14101919 LUCAS BRAATZ ARAUJO\n" +
             "19100900 ALEJANDRO TOMAS REYES ALBERONI\n" +
-            "17200154 JOAZ FERNANDO BASTOS DA SILVA FILHO\n" +
-            "11108244 MATEUS AL ALAM DE ALMEIDA\n" +
-            "18101409 CLEBER FARIAS BERNDSEN JUNIOR");
+            "11108244 MATEUS AL ALAM DE ALMEIDA\n");
     }                                          
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {                                           
         exit(0);
     }                                          
 
-    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {                                           
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) throws IOException, FileNotFoundException, InterruptedException {
         Reg2B AX, DX, SP, SI, IP, SR;
         AX = new Reg2B();
         DX = new Reg2B();
@@ -251,24 +250,8 @@ public class VMUI extends javax.swing.JFrame {
         Pilha pilha = new Pilha();
         IP.setRegistrador(mem.getEndMaxPilha());
         
-        JFileChooser chooser = new JFileChooser();
-        chooser.setCurrentDirectory(new File(""));
-        chooser.setFileFilter(new FileNameExtensionFilter("object","o"));
-        chooser.showOpenDialog(null);
-        File f = chooser.getSelectedFile();
-        String filename = f.getAbsolutePath();
-        
         try {
-            FileReader rArquivo = new FileReader(filename);
-            BufferedReader rBuffer = new BufferedReader(rArquivo);
             
-        while(rBuffer.ready()) {
-            mem.setLinha(rBuffer.readLine().split(" "));
-        }
-        
-        rBuffer.close();
-        rArquivo.close();
-        
         int cont;
         for(;;) {
             cont = IP.getRepresentacaoInt();
@@ -444,8 +427,6 @@ public class VMUI extends javax.swing.JFrame {
             atualizaUI(AX, DX, SR, SP, IP, SI);
         }
         
-        } catch(IOException e) {
-            JOptionPane.showMessageDialog(null,e);
         } catch (InterruptedException ex) {
             Logger.getLogger(VMUI.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -466,7 +447,7 @@ public class VMUI extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException, FileNotFoundException, InterruptedException {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -491,6 +472,7 @@ public class VMUI extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
+        Carregador.carregar();
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new VMUI().setVisible(true);
@@ -499,7 +481,7 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static int getOperando(int index) {
-        return Integer.parseInt(mem.getPalavra(Integer.parseInt(mem.getPalavra(index)) + mem.getEndMaxPilha()));
+        return Integer.parseInt(mem.getPalavra(Integer.parseInt(mem.getPalavra(index))));
     }
     
     private static boolean verificaCarry(String conteudo) {                     ///////
@@ -718,35 +700,35 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void jmp(Reg2B reg, int opd) {
-        reg.setRegistrador(opd + mem.getEndMaxPilha());
+        reg.setRegistrador(opd);
     }
     
     private static void jz(Reg2B reg, int opd, Reg2B flags) {
         if(flags.get1Bit(7)) {
-            reg.setRegistrador(opd + mem.getEndMaxPilha());
+            reg.setRegistrador(opd);
         }
     }
     
     private static void jnz(Reg2B reg, int opd, Reg2B flags) {
         if(!flags.get1Bit(7)) {
-            reg.setRegistrador(opd + mem.getEndMaxPilha());
+            reg.setRegistrador(opd);
         }
     }
     
     private static void jp(Reg2B reg, int opd, Reg2B flags) {
         if(!flags.get1Bit(6)) {
-            reg.setRegistrador(opd + mem.getEndMaxPilha());
+            reg.setRegistrador(opd);
         }
     }
     
     private static void call(Reg2B regPilha, Reg2B IP, int index, Pilha pilha) {
         pilha.push(IP.getRepresentacaoString());
-        IP.setRegistrador(Integer.parseInt(mem.getPalavra(index)) + mem.getEndMaxPilha() - 1);
+        IP.setRegistrador(Integer.parseInt(mem.getPalavra(index)) - 1/**/);
         regPilha.setRegistrador(pilha.getEndTopoPilha());
     }
     
     private static void ret(Reg2B regPilha, Reg2B IP, Pilha pilha) {
-        IP.setRegistrador(pilha.pop());
+        IP.setRegistrador(pilha.pop(), false);
         regPilha.setRegistrador(pilha.getEndTopoPilha());
     }
     
@@ -757,17 +739,17 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void popReg(Reg2B regPilha, Reg2B reg, Pilha pilha) {
-        reg.setRegistrador(pilha.pop());
+        reg.setRegistrador(pilha.pop(), false);
         regPilha.setRegistrador(pilha.getEndTopoPilha());
     }
     
     private static void popOpd(Reg2B regPilha, int opd, Pilha pilha) {
-        mem.setPalavra(pilha.pop(), Integer.parseInt(mem.getPalavra(opd)) + mem.getEndMaxPilha());
+        mem.setPalavra(pilha.pop(), Integer.parseInt(mem.getPalavra(opd)));
         regPilha.setRegistrador(pilha.getEndTopoPilha());
     }
     
     private static void popF(Reg2B regPilha, Reg2B flags, Pilha pilha) {
-        flags.setRegistrador(pilha.pop());
+        flags.setRegistrador(pilha.pop(), false);
         regPilha.setRegistrador(pilha.getEndTopoPilha());
     }
     
@@ -782,15 +764,15 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void store(Reg2B reg, int opd) {
-        mem.setPalavra(reg.getRepresentacaoInt().toString(), opd + mem.getEndMaxPilha());
+        mem.setPalavra(reg.getRepresentacaoInt().toString(), opd);
     }
     
     private static void read(int opd) {
-        mem.setPalavra(JOptionPane.showInputDialog(null, "Digite o valor da entrada:", "Instrução Read", WIDTH), (opd + mem.getEndMaxPilha()));
+        mem.setPalavra(JOptionPane.showInputDialog(null, "Digite o valor da entrada:", "Instrução Read", WIDTH), opd);
     }
     
     private static void write(int opd) {
-        JOptionPane.showMessageDialog(null, "Saída: " + mem.getPalavra(opd + mem.getEndMaxPilha()), "Instrução Write", WIDTH);
+        JOptionPane.showMessageDialog(null, "Saída: " + mem.getPalavra(opd), "Instrução Write", WIDTH);
     }
 
     private static void load(Reg2B reg, int opd, Reg2B flags) {
@@ -799,7 +781,7 @@ public class VMUI extends javax.swing.JFrame {
     }
     
     private static void copy(int opd1, int opd2) {
-        mem.setPalavra(mem.getPalavra(opd2 + mem.getEndMaxPilha()), (opd1 + mem.getEndMaxPilha()));
+        mem.setPalavra(mem.getPalavra(opd2), opd1);
     }
     
     private static void divide(Reg2B reg, int opd, Reg2B flags) {
