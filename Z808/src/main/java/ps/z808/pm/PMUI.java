@@ -11,9 +11,9 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class PMUI extends javax.swing.JFrame {
-    static ArrayList<String> linhas = new ArrayList<>();
-    static TDM tabela = new TDM();
-    static public volatile boolean fPM = false;
+    ArrayList<String> linhas = new ArrayList<>();
+    TDM tabela = new TDM();
+    public volatile boolean fPM = false;
     
     public PMUI() {
         initComponents();
@@ -142,6 +142,7 @@ public class PMUI extends javax.swing.JFrame {
 
     @SuppressWarnings("WaitWhileNotSynced")
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+            fPM = false;
             JFileChooser chooser = new JFileChooser();
             chooser.setCurrentDirectory(new File(""));
             chooser.setFileFilter(new FileNameExtensionFilter("asm","ASM"));
@@ -222,11 +223,11 @@ public class PMUI extends javax.swing.JFrame {
         });
     }
     
-    private static boolean verificacaoDefinicao(int indexLinha) {
+    private boolean verificacaoDefinicao(int indexLinha) {
         return linhas.get(indexLinha).contains("MACRO");
     }
     
-    private static int verificacaoChamada(int indexLinha) {
+    private int verificacaoChamada(int indexLinha) {
         String temp[] = linhas.get(indexLinha).split(" ");
         int cont, contMacro, numeroMacrosDefinidas = tabela.getNumeroMacrosDefinidas();
         
@@ -243,7 +244,7 @@ public class PMUI extends javax.swing.JFrame {
         return -1;
     }
     
-    private static int modoDefinicao(BufferedReader rBuffer, int indexLinha) throws IOException {
+    private int modoDefinicao(BufferedReader rBuffer, int indexLinha) throws IOException {
         String temp = linhas.get(indexLinha);
         int contAninhamento = 0;
         //contador de definições aninhadas para identificação correta do delimitador final ("ENDM") da macro mais externa
@@ -283,9 +284,9 @@ public class PMUI extends javax.swing.JFrame {
         //retorna index atualizado para o contador das linhas de entrada
     }
     
-    private static void modoExpansao(BufferedWriter wBuffer, int indexPrototipo, int indexLinha) throws IOException {
+    private void modoExpansao(BufferedWriter wBuffer, int indexPrototipo, int indexLinha) throws IOException {
         ArrayList<String> parametrosReais = new ArrayList<>();
-        parametrosReais.addAll(tabela.getParametrosChamada(indexPrototipo, indexLinha));
+        parametrosReais.addAll(tabela.getParametrosChamada(indexPrototipo, indexLinha, linhas));
         tabela.limpaParametros();
         String temp;
         int contLinhas, contParametrosReais, contAninhamento = 0;
@@ -351,7 +352,7 @@ public class PMUI extends javax.swing.JFrame {
         tabela.limpaParametros();
     }
     
-    private static void modoCopia(BufferedWriter wBuffer, int cont) throws IOException {
+    private void modoCopia(BufferedWriter wBuffer, int cont) throws IOException {
         wBuffer.write(linhas.get(cont), 0, linhas.get(cont).length());
         wBuffer.newLine();
     }
