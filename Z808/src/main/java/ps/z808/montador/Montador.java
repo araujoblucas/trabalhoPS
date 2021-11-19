@@ -5,7 +5,6 @@ instruções que foram implementadas com outros opcodes na máquina virtual:
 *CALL   |   15   |  OK com opcode E8
 *SUB    |   06   |  OK com opcode 2D
 
-diretiva não utilizada -> OFFSET
 ação não informada -> int cte | CD cte
 instrução diferente da máquina virtual -> STOP  |   11
 instrução alterada na máquina virtual -> STORE  |   07
@@ -32,15 +31,15 @@ public class Montador {
     static String[] instOpd = {"05", "2D", "3D", "25", "0D", "35", "EB", "74", "75", "7A", "59", "12", "08", "10", "14"};
     
     @SuppressWarnings("static-access")
-    public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException {
-        PMUI PM = new PMUI();
-        PM.setVisible(true);                                                    //chamada processador de macro
-        while(!PM.fPM) {}                                                       //aguarda finalização do processador de macro
+    public static void montar(TD td, TU tu, String nomeArquivoSaida) throws FileNotFoundException, IOException, InterruptedException {
+        PMUI pm = new PMUI();
+        pm.setVisible(true);                                                    //chamada processador de macro
+        while(!pm.fPM) {}                                                       //aguarda finalização do processador de macro
         
         ArrayList<String[]> linhas = new ArrayList<>();
         FileReader rArquivo = new FileReader("saida.asm");
         BufferedReader rBuffer = new BufferedReader(rArquivo);
-        FileWriter wArquivo = new FileWriter("codigoObjeto.o");
+        FileWriter wArquivo = new FileWriter(nomeArquivoSaida + ".o");
         BufferedWriter wBuffer = new BufferedWriter(wArquivo);
         
         String[] temp;                                                          //utilizada p/ manipulação de cada linha lida do arquivo
@@ -67,238 +66,270 @@ public class Montador {
             tempA.clear();
         }
         
-        TS ts = new TS();                                                       //cria tabela de símbolos
-        passo1(ts, linhas);
-        passo2(ts, linhas, wBuffer);
+        passo1(td, tu, linhas, nomeArquivoSaida);
+        passo2(td, linhas, wBuffer);
         
         rBuffer.close();
         rArquivo.close();
         wBuffer.close();
         wArquivo.close();
         
-        saidaMontador();
-        
-        System.exit(0);
+        saidaMontador(nomeArquivoSaida);
+        pm.setVisible(false);
+        linhas.clear();
     }
     
-    private static void passo1(TS ts, ArrayList<String[]> linhas) {
-        for(; ts.lineCounter < linhas.size(); ts.lineCounter++) {
+    private static void passo1(TD td, TU tu, ArrayList<String[]> linhas, String nomeArquivoSaida) {
+        ArrayList<String> extrns = new ArrayList<>();
+        ArrayList<String> publics = new ArrayList<>();
+        for(; td.lineCounter < linhas.size(); td.lineCounter++) {
         //repete enquanto o contador de linhas for menor do que o número de linhas do arquivo de entrada
-            for(int cont = 0; cont < linhas.get(ts.lineCounter).length; cont++) {
+            for(int cont = 0; cont < linhas.get(td.lineCounter).length; cont++) {
             //repete enquanto cont for menor do que a quantidade de partes da instrução
-                switch(linhas.get(ts.lineCounter)[cont]) {
+                switch(linhas.get(td.lineCounter)[cont]) {
                 //verifica se é uma instrução ou uma referência aos registradores AX/DX
                 //se não, entra no default
+                    case "public":
+                    case "PUBLIC":
+                        linhas.get(td.lineCounter)[cont] = "PUBLIC";
+                        for(cont += 1; cont < linhas.get(td.lineCounter).length; cont++) {
+                            td.setSimbolo(linhas.get(td.lineCounter)[cont]);
+                            tu.setSimboloGlobal(linhas.get(td.lineCounter)[cont]);
+                            publics.add(linhas.get(td.lineCounter)[cont]);
+                        }
+                        td.locationCounter--;
+                        tu.locationCounter--;
+                        break;
+                    case "extrn":
+                    case "EXTRN":
+                        linhas.get(td.lineCounter)[cont] = "EXTRN";
+                        for(cont += 1; cont < linhas.get(td.lineCounter).length; cont++) {
+                            td.setSimbolo(linhas.get(td.lineCounter)[cont]);
+                            tu.setSimboloGlobal(linhas.get(td.lineCounter)[cont]);
+                            extrns.add(linhas.get(td.lineCounter)[cont]);
+                        }
+                        td.locationCounter--;
+                        tu.locationCounter--;
+                        break;
                     case "AX":
-                        linhas.get(ts.lineCounter)[cont] = "C0";
+                        linhas.get(td.lineCounter)[cont] = "C0";
                         break;
                     case "DX":
-                        linhas.get(ts.lineCounter)[cont] = "C2";
+                        linhas.get(td.lineCounter)[cont] = "C2";
                         break;
                     case "add": 
                     case "ADD": 
-                        linhas.get(ts.lineCounter)[cont] = verificaInst(linhas.get(ts.lineCounter)[cont + 1], "03", "05");
+                        linhas.get(td.lineCounter)[cont] = verificaInst(linhas.get(td.lineCounter)[cont + 1], "03", "05");
                         break;
                     case "div": 
                     case "DIV": 
-                        linhas.get(ts.lineCounter)[cont] = "F7";
+                        linhas.get(td.lineCounter)[cont] = "F7";
                         cont++;
-                        ts.locationCounter++;
-                        if(linhas.get(ts.lineCounter)[cont].contentEquals("SI")) {
-                            linhas.get(ts.lineCounter)[cont] = "F6";
-                        } else if(linhas.get(ts.lineCounter)[cont].contentEquals("AX")) {
-                            linhas.get(ts.lineCounter)[cont] = "F0";
+                        td.locationCounter++;
+                        tu.locationCounter++;
+                        if(linhas.get(td.lineCounter)[cont].contentEquals("SI")) {
+                            linhas.get(td.lineCounter)[cont] = "F6";
+                        } else if(linhas.get(td.lineCounter)[cont].contentEquals("AX")) {
+                            linhas.get(td.lineCounter)[cont] = "F0";
                         }
                         break;
                     case "mul": 
                     case "MUL": 
-                        linhas.get(ts.lineCounter)[cont] = "F7";
+                        linhas.get(td.lineCounter)[cont] = "F7";
                         cont++;
-                        ts.locationCounter++;
-                        if(linhas.get(ts.lineCounter)[cont].contentEquals("SI")) {
-                            linhas.get(ts.lineCounter)[cont] = "E6";
-                        } else if(linhas.get(ts.lineCounter)[cont].contentEquals("AX")) {
-                            linhas.get(ts.lineCounter)[cont] = "E0";
+                        td.locationCounter++;
+                        tu.locationCounter++;
+                        if(linhas.get(td.lineCounter)[cont].contentEquals("SI")) {
+                            linhas.get(td.lineCounter)[cont] = "E6";
+                        } else if(linhas.get(td.lineCounter)[cont].contentEquals("AX")) {
+                            linhas.get(td.lineCounter)[cont] = "E0";
                         }
                         break;
                     case "sub": 
                     case "SUB": 
-                        linhas.get(ts.lineCounter)[cont] = verificaInst(linhas.get(ts.lineCounter)[cont + 1], "2B", "2D");
+                        linhas.get(td.lineCounter)[cont] = verificaInst(linhas.get(td.lineCounter)[cont + 1], "2B", "2D");
                         break;
                     case "cmp": 
                     case "CMP": 
-                        linhas.get(ts.lineCounter)[cont] = verificaInst(linhas.get(ts.lineCounter)[cont + 1], "3B", "3D");
+                        linhas.get(td.lineCounter)[cont] = verificaInst(linhas.get(td.lineCounter)[cont + 1], "3B", "3D");
                         break;
                     case "and": 
                     case "AND": 
-                        linhas.get(ts.lineCounter)[cont] = verificaInst(linhas.get(ts.lineCounter)[cont + 1], "23", "25");
+                        linhas.get(td.lineCounter)[cont] = verificaInst(linhas.get(td.lineCounter)[cont + 1], "23", "25");
                         break;
                     case "not": 
                     case "NOT": 
-                        linhas.get(ts.lineCounter)[cont] = "F8";
+                        linhas.get(td.lineCounter)[cont] = "F8";
                         break;
                     case "or": 
                     case "OR": 
-                        linhas.get(ts.lineCounter)[cont] = verificaInst(linhas.get(ts.lineCounter)[cont + 1], "0B", "0D");
+                        linhas.get(td.lineCounter)[cont] = verificaInst(linhas.get(td.lineCounter)[cont + 1], "0B", "0D");
                         break;
                     case "xor": 
                     case "XOR": 
-                        linhas.get(ts.lineCounter)[cont] = verificaInst(linhas.get(ts.lineCounter)[cont + 1], "33", "35");
+                        linhas.get(td.lineCounter)[cont] = verificaInst(linhas.get(td.lineCounter)[cont + 1], "33", "35");
                         break;
                     case "jmp": 
                     case "JMP": 
-                        linhas.get(ts.lineCounter)[cont] = "EB";
+                        linhas.get(td.lineCounter)[cont] = "EB";
                         break;
                     case "jz": 
                     case "JZ": 
-                        linhas.get(ts.lineCounter)[cont] = "74";
+                        linhas.get(td.lineCounter)[cont] = "74";
                         break;
                     case "jnz": 
                     case "JNZ": 
-                        linhas.get(ts.lineCounter)[cont] = "75";
+                        linhas.get(td.lineCounter)[cont] = "75";
                         break;
                     case "jp": 
                     case "JP": 
-                        linhas.get(ts.lineCounter)[cont] = "7A";
+                        linhas.get(td.lineCounter)[cont] = "7A";
                         break;
                     case "call": 
                     case "CALL": 
-                        linhas.get(ts.lineCounter)[cont] = "E8";
+                        linhas.get(td.lineCounter)[cont] = "E8";
                         break;
                     case "ret": 
                     case "RET": 
-                        linhas.get(ts.lineCounter)[cont] = "EF";
+                        linhas.get(td.lineCounter)[cont] = "EF";
                         break;
                     case "hlt": 
                     case "HLT": 
-                        linhas.get(ts.lineCounter)[cont] = "EE";
+                        linhas.get(td.lineCounter)[cont] = "EE";
                         break;
                     case "pop": 
                     case "POP": 
-                        linhas.get(ts.lineCounter)[cont] = verificaInst(linhas.get(ts.lineCounter)[cont + 1], "58", "59");
+                        linhas.get(td.lineCounter)[cont] = verificaInst(linhas.get(td.lineCounter)[cont + 1], "58", "59");
                         break;
                     case "popf": 
                     case "POPF": 
-                        linhas.get(ts.lineCounter)[cont] = "9D";
+                        linhas.get(td.lineCounter)[cont] = "9D";
                         break;
                     case "push": 
                     case "PUSH": 
-                        linhas.get(ts.lineCounter)[cont] = "50";
+                        linhas.get(td.lineCounter)[cont] = "50";
                         break;
                     case "pushf": 
                     case "PUSHF": 
-                        linhas.get(ts.lineCounter)[cont] = "9C";
+                        linhas.get(td.lineCounter)[cont] = "9C";
                         break;
                     case "store": 
                     case "STORE": 
-                        linhas.get(ts.lineCounter)[cont] = "07";
+                        linhas.get(td.lineCounter)[cont] = "07";
                         break;
                     case "read": 
                     case "READ": 
-                        linhas.get(ts.lineCounter)[cont] = "12";
+                        linhas.get(td.lineCounter)[cont] = "12";
                         break;
                     case "write": 
                     case "WRITE":
-                        linhas.get(ts.lineCounter)[cont] = "08";
+                        linhas.get(td.lineCounter)[cont] = "08";
                         break;
                     case "load":
                     case "LOAD":
-                        linhas.get(ts.lineCounter)[cont] = "03";
+                        linhas.get(td.lineCounter)[cont] = "03";
                         break;
                     case "copy":
                     case "COPY":
-                        linhas.get(ts.lineCounter)[cont] = "13";
+                        linhas.get(td.lineCounter)[cont] = "13";
                         break;
                     case "divide":
                     case "DIVIDE":
-                        linhas.get(ts.lineCounter)[cont] = "10";
+                        linhas.get(td.lineCounter)[cont] = "10";
                         break;
                     case "mult":
                     case "MULT":
-                        linhas.get(ts.lineCounter)[cont] = "14";
+                        linhas.get(td.lineCounter)[cont] = "14";
                         break;
                     default:
+                        tu.setOcorrencia(linhas.get(td.lineCounter)[cont]);
                         if(cont == 0) {
                         //se cont = 0, então é label
-                            if(!Arrays.asList(ts.getSimbolos()).contains(linhas.get(ts.lineCounter)[cont])) {
+                            if(!Arrays.asList(td.getSimbolos()).contains(linhas.get(td.lineCounter)[cont])) {
                             //se ainda não estiver armazenada na tabela de símbolos
-                                ts.setSimbolo(linhas.get(ts.lineCounter)[cont]);
+                                td.setSimbolo(linhas.get(td.lineCounter)[cont]);
                                 //armazena a label como símbolo
-                                ts.setEndValor(linhas.get(ts.lineCounter)[cont]);
+                                td.setEndValor(linhas.get(td.lineCounter)[cont]);
                                 //armazena o endereço referenciado pela label
-                                ts.locationCounter--;                           
+                                td.locationCounter--;
+                                tu.locationCounter--;
                                 //decrementa contador de endereços porque a cada repetição ele é incrementado e
                                 //label não ocupa endereço
-                            } else if((linhas.get(ts.lineCounter).length - cont) > 1 && 
-                            (linhas.get(ts.lineCounter)[cont + 1].contentEquals("EQU") || 
-                            linhas.get(ts.lineCounter)[cont + 1].contentEquals("equ"))
-                            && ts.getEndValor(linhas.get(ts.lineCounter)[cont]) < 0) {
+                            } else if((linhas.get(td.lineCounter).length - cont) > 1 && 
+                            (linhas.get(td.lineCounter)[cont + 1].contentEquals("EQU") || 
+                            linhas.get(td.lineCounter)[cont + 1].contentEquals("equ"))
+                            && td.getEndValor(linhas.get(td.lineCounter)[cont]) < 0) {
                             //se já estiver na tabela de símbolos, for seguida da diretiva EQU/equ e não possuir endereço associado armazenado
-                                ts.setEndValor(linhas.get(ts.lineCounter)[cont]);
+                                td.setEndValor(linhas.get(td.lineCounter)[cont]);
                                 //armazena o endereço referenciado pela label
-                                String temp = linhas.get(ts.lineCounter)[linhas.get(ts.lineCounter).length - 1];
-                                linhas.set(ts.lineCounter, new String[1]);
-                                linhas.get(ts.lineCounter)[0] = temp;
+                                String temp = linhas.get(td.lineCounter)[linhas.get(td.lineCounter).length - 1];
+                                linhas.set(td.lineCounter, new String[1]);
+                                linhas.get(td.lineCounter)[0] = temp;
                                 //atualiza a linha p/ que contenha somente o valor
                                 //não precisa decrementar o contador de endereços porque o único conteúdo da linha passa a ser o valor
-                            } else if(ts.getEndValor(linhas.get(ts.lineCounter)[cont]) < 0) {
+                            } else if(td.getEndValor(linhas.get(td.lineCounter)[cont]) < 0) {
                             //se já estiver na tabela de símbolos e não possuir endereço associado
-                                ts.setEndValor(linhas.get(ts.lineCounter)[cont]);
+                                td.setEndValor(linhas.get(td.lineCounter)[cont]);
                                 //armazena o endereço referenciado pela label
-                                ts.locationCounter--;
+                                td.locationCounter--;
+                                tu.locationCounter--;
                                 //decrementa contador de endereços porque a cada repetição ele é incrementado e
                                 //label não ocupa endereço
                             }
                         } //não é label, então é referência a símbolo
-                        else if(Arrays.asList(instOpd).contains(linhas.get(ts.lineCounter)[cont - 1])) {
+                        else if(!extrns.contains(linhas.get(td.lineCounter)[cont])) {
+                        if(Arrays.asList(instOpd).contains(linhas.get(td.lineCounter)[cont - 1])) {
                         //se a referência ao símbolo for antecedida por uma instrução que suporta operando
-                            if(!Arrays.asList(ts.getSimbolos()).contains(linhas.get(ts.lineCounter)[cont])) {
+                            if(!Arrays.asList(td.getSimbolos()).contains(linhas.get(td.lineCounter)[cont])) {
                             //se o símbolo ainda não estiver na tabela de símbolos, adiciona a ela
-                                ts.setSimbolo(linhas.get(ts.lineCounter)[cont]);
+                                td.setSimbolo(linhas.get(td.lineCounter)[cont]);
                             }
-                        } else if(linhas.get(ts.lineCounter)[cont - 1].contentEquals("03") &&
-                        !Arrays.asList(ts.getSimbolos()).contains(linhas.get(ts.lineCounter)[cont])) {
+                        } else if(linhas.get(td.lineCounter)[cont - 1].contentEquals("03") &&
+                        !Arrays.asList(td.getSimbolos()).contains(linhas.get(td.lineCounter)[cont])) {
                         //se a referência ao símbolo for antecedida pela instrução LOAD/load e
                         //o símbolo ainda não estiver na tabela de símbolos, adiciona a ela
-                            ts.setSimbolo(linhas.get(ts.lineCounter)[cont]);
-                        } else if(cont > 1 && (linhas.get(ts.lineCounter)[cont - 1].contentEquals("C0") || 
-                        linhas.get(ts.lineCounter)[cont - 1].contentEquals("C2")) && 
-                        linhas.get(ts.lineCounter)[cont - 2].contentEquals("07") &&
-                        !Arrays.asList(ts.getSimbolos()).contains(linhas.get(ts.lineCounter)[cont])) {
+                            td.setSimbolo(linhas.get(td.lineCounter)[cont]);
+                        } else if(cont > 1 && (linhas.get(td.lineCounter)[cont - 1].contentEquals("C0") || 
+                        linhas.get(td.lineCounter)[cont - 1].contentEquals("C2")) && 
+                        linhas.get(td.lineCounter)[cont - 2].contentEquals("07") &&
+                        !Arrays.asList(td.getSimbolos()).contains(linhas.get(td.lineCounter)[cont])) {
                         //se a referência ao símbolo for antecedida pela instrução STORE/store e por uma referência a um registrador
                         //e o símbolo ainda não estiver na tabela de símbolos, adiciona a ela
-                            ts.setSimbolo(linhas.get(ts.lineCounter)[cont]);
-                        } else if((cont > 1 && linhas.get(ts.lineCounter)[cont - 2].contentEquals("13")) ||
-                        (cont > 0 && linhas.get(ts.lineCounter)[cont - 1].contentEquals("13")) &&
-                        !Arrays.asList(ts.getSimbolos()).contains(linhas.get(ts.lineCounter)[cont])) {
+                            td.setSimbolo(linhas.get(td.lineCounter)[cont]);
+                        } else if((cont > 1 && linhas.get(td.lineCounter)[cont - 2].contentEquals("13")) ||
+                        (cont > 0 && linhas.get(td.lineCounter)[cont - 1].contentEquals("13")) &&
+                        !Arrays.asList(td.getSimbolos()).contains(linhas.get(td.lineCounter)[cont])) {
                         //se a referência ao símbolo for antecedida pela instrução COPY/copy e
                         //o símbolo ainda não estiver na tabela de símbolos, adiciona a ela
-                            ts.setSimbolo(linhas.get(ts.lineCounter)[cont]);
-                        } else {
+                            td.setSimbolo(linhas.get(td.lineCounter)[cont]);
+                        } else if (!publics.contains(linhas.get(td.lineCounter)[cont])) {
                         //se nenhum dos casos, então o formato da instrução tratada não é válido
-                            System.out.println("Formato de instrução inválido! Linha " + ts.lineCounter + ", Posição " + 
-                                (cont - 1) + " e " + cont + ", Endereço " + ts.locationCounter);
+                            System.out.println(nomeArquivoSaida + ": " + "Formato de instrução inválido! Linha " + td.lineCounter + ", Posição " + 
+                                (cont - 1) + " e " + cont + ", Endereço " + td.locationCounter);
+                        }
                         }
                         break;
                 }
-                ts.locationCounter++;                                           //incrementa contador de endereços
+                td.locationCounter++;                                           //incrementa contador de endereços
+                tu.locationCounter++;
             }
         }
     }
     
-    private static void passo2(TS ts, ArrayList<String[]> linhas, BufferedWriter wBuffer) throws IOException {
+    private static void passo2(TD td, ArrayList<String[]> linhas, BufferedWriter wBuffer) throws IOException {
         String linha = "";                                                      //recebe a instrução montada p/ escrever na saída
-        for(int cont = 0; cont < ts.lineCounter; cont++) {
+        for(int cont = 0; cont < td.lineCounter; cont++) {
         //repete enquanto cont for menor do que o contador de linhas
             for(int contAux = 0; contAux < linhas.get(cont).length; contAux++) {
             //repete enquanto contAux for menor do que a quantidade de partes da instrução
-                if(contAux == 0 && Arrays.asList(ts.getSimbolos()).contains(linhas.get(cont)[contAux])) {
+                if(linhas.get(cont)[0].contentEquals("public") || linhas.get(cont)[0].contentEquals("PUBLIC")) {
+                } else if(contAux == 0 && Arrays.asList(td.getSimbolos()).contains(linhas.get(cont)[contAux])/* && td.getEndValor(linhas.get(cont)[contAux]) >= 0*/) {
                 //se for a primeira posição do vetor e o conteúdo corresponder a um símbolo armazenado na tabela, então é label
                     contAux++;
                     //incrementa o contador p/ manter na linha somente o conteúdo da instrução referenciada pela label
-                } else if(Arrays.asList(ts.getSimbolos()).contains(linhas.get(cont)[contAux])) {
+                } else if(Arrays.asList(td.getSimbolos()).contains(linhas.get(cont)[contAux]) && td.getEndValor(linhas.get(cont)[contAux]) >= 0) {
                 //se a string corresponder a um símbolo armazenado na tabela, então é referência a ele
-                    linhas.get(cont)[contAux] = ts.getEndValor(linhas.get(cont)[contAux]).toString();
+                    linhas.get(cont)[contAux] = td.getEndValor(linhas.get(cont)[contAux]).toString();
                     //substitui o símbolo pelo endereço de memória onde o valor dele se encontra
                 }
                 linha += linhas.get(cont)[contAux] + " ";
@@ -321,8 +352,8 @@ public class Montador {
         }
     }
     
-    private static void saidaMontador() throws FileNotFoundException, IOException {
-        FileReader arqCodigoMontado = new FileReader("codigoObjeto.o");
+    private static void saidaMontador(String nomeArquivoSaida) throws FileNotFoundException, IOException {
+        FileReader arqCodigoMontado = new FileReader(nomeArquivoSaida + ".o");
         BufferedReader bufferCodigoMontado = new BufferedReader(arqCodigoMontado);
         String codigoMontado = "";
         while(bufferCodigoMontado.ready()) {
