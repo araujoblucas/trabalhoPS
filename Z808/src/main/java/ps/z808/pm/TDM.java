@@ -1,6 +1,5 @@
 package ps.z808.pm;
 import java.util.ArrayList;
-import static ps.z808.pm.PMUI.linhas;
 
 public class TDM {
     private ArrayList<String> prototipos, definicoes, parametros, prototiposMacrosInternas, parametrosMacrosInternas;
@@ -184,7 +183,7 @@ public class TDM {
         return prototipos.get(index).substring(0, prototipos.get(index).indexOf(" "));
     }
     
-    protected ArrayList<String> getParametrosChamada(int indexPrototipo, int indexChamada) {
+    protected ArrayList<String> getParametrosChamada(int indexPrototipo, int indexChamada, ArrayList<String> linhas) {
     //identifica os parametros reais de uma linha de chamada
         String nomeMacro = getNomeMacro(indexPrototipo), chamada = linhas.get(indexChamada);
         setParametros(chamada.substring(chamada.indexOf(nomeMacro) + nomeMacro.length() + 1));
